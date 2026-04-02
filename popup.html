@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>DayLink Maps Scraper</title>
+    <link href="css/style.css" rel="stylesheet" />
+    <script src="lib/fetch.umd.js"></script>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="lib/axios.min.js"></script>
+    <script src="js/util.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            width: 380px;
+            min-height: 500px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 16px;
+            margin: 8px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header .subtitle {
+            margin: 8px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: rgba(46, 204, 113, 0.2);
+            color: #27ae60;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+            border: 1px solid rgba(46, 204, 113, 0.3);
+        }
+        
+        .content {
+            padding: 32px 24px;
+        }
+        
+        .search-section {
+            margin-bottom: 24px;
+        }
+        
+        .search-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e1e8ed;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+            background: #f8f9fa;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #3498db;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .search-btn {
+            width: 100%;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 16px;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .search-btn:active {
+            transform: translateY(0);
+        }
+        
+        .features {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        
+        .features h3 {
+            margin: 0 0 16px 0;
+            font-size: 16px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .feature-list li {
+            padding: 8px 0;
+            font-size: 14px;
+            color: #5a6c7d;
+            position: relative;
+            padding-left: 24px;
+        }
+        
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 24px;
+            background: #f8f9fa;
+            color: #7f8c8d;
+            font-size: 13px;
+        }
+        
+        .footer h3 {
+            margin: 0 0 8px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗺️ DayLink Maps Scraper</h1>
+            <div class="subtitle">Professional Lead Generation Tool</div>
+            <div class="status-badge">✨ Unlimited Access</div>
+        </div>
+        
+        <div class="content">
+            <div class="search-section">
+                <label class="search-label" for="profileid">Search for businesses:</label>
+                <input type="text" id="profileid" class="search-input" value="coffee shops near me" placeholder="e.g., restaurants in New York, dentists near me" />
+                <button id="addprofilebtn" class="search-btn">🚀 Search with DayLink</button>
+            </div>
+            
+            <div class="features">
+                <h3>🎯 What You'll Get</h3>
+                <ul class="feature-list">
+                    <li>Business names & contact info</li>
+                    <li>Email addresses & phone numbers</li>
+                    <li>Social media profiles</li>
+                    <li>Ratings & reviews</li>
+                    <li>Export to CSV/Excel</li>
+                    <li>Unlimited downloads</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <h3>DayLink Maps Scraper</h3>
+            <div>Professional Lead Generation</div>
+        </div>
+    </div>
+</body>
+<script src="js/popup.js"></script>
+
+</html>

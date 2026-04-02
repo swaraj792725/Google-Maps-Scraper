@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>DayLink Maps Scraper - Export Dashboard</title>
+    <link href="lib/tabulator/css/semantic-ui/tabulator_semantic-ui.min.css" rel="stylesheet" />
+    <link href="css/dashboard.css" rel="stylesheet" />
+    <script type="text/javascript" src="lib/tabulator/js/tabulator.min.js"></script>
+    <script type="text/javascript" src="lib/xlsx.full.min.js"></script>
+    <script src="lib/fetch.umd.js"></script>
+    <script src="lib/jquery-3.1.1.min.js"></script>
+    <script src="js/util.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            background: white;
+            margin: 20px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 24px 32px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        
+        .header .subtitle {
+            margin: 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            padding: 24px 32px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e1e8ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        
+        .download-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        
+        .download-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .download-csv {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+        
+        .download-csv:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+        }
+        
+        .download-xlsx {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .download-xlsx:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        .status-info {
+            background: rgba(46, 204, 113, 0.1);
+            color: #27ae60;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            border: 1px solid rgba(46, 204, 113, 0.2);
+        }
+        
+        .table-container {
+            padding: 24px 32px;
+        }
+        
+        .tabulator {
+            border: none !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1) !important;
+        }
+        
+        .tabulator .tabulator-header {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+            border-bottom: 2px solid #dee2e6 !important;
+        }
+        
+        .tabulator .tabulator-header .tabulator-col {
+            background: transparent !important;
+            border-right: 1px solid #dee2e6 !important;
+            font-weight: 600 !important;
+            color: #2c3e50 !important;
+        }
+        
+        .tabulator .tabulator-row {
+            border-bottom: 1px solid #f1f3f4 !important;
+        }
+        
+        .tabulator .tabulator-row:nth-child(even) {
+            background: #f8f9fa !important;
+        }
+        
+        .tabulator .tabulator-row:hover {
+            background: #e3f2fd !important;
+        }
+        
+        .tabulator .tabulator-cell {
+            border-right: 1px solid #f1f3f4 !important;
+            padding: 12px 16px !important;
+        }
+        
+        .footer {
+            text-align: center;
+            padding: 20px 32px;
+            background: #f8f9fa;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .download-buttons {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 DayLink Export Dashboard</h1>
+            <div class="subtitle">Export your scraped leads to CSV or Excel</div>
+        </div>
+        
+        <div class="controls">
+            <div class="download-buttons">
+                <button id="download-csv" class="download-btn download-csv">
+                    📄 Download CSV
+                </button>
+                <button id="download-xlsx" class="download-btn download-xlsx">
+                    📊 Download Excel
+                </button>
+            </div>
+            <div class="status-info" id="accountinfo">DayLink Maps Scraper - Ready to Export</div>
+        </div>
+        
+        <div class="table-container">
+            <div id="example-table"></div>
+        </div>
+        
+        <div class="footer">
+            <div>DayLink Maps Scraper - Professional Lead Generation Tool</div>
+        </div>
+    </div>
+</body>
+<script src="js/dashboard.js"></script>
+
+</html>
